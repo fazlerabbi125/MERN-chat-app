@@ -1,14 +1,17 @@
-import mongoose, { HydratedDocument, Model } from "mongoose";
+import mongoose, { Document, Model, ObjectId } from "mongoose";
 
-interface ChatProps {
+export interface ChatDocument extends Document {
     isGroupChat: boolean;
-    groupName?: string;
-    members: Array<mongoose.Schema.Types.ObjectId>;
-    messages: Array<mongoose.Schema.Types.ObjectId>;
-    groupAdmin?: mongoose.Schema.Types.ObjectId
+    groupName?: string | null;
+    members: Array<ObjectId>;
+    messages: Array<ObjectId>;
+    groupAdmin?: ObjectId | null;
+    createdAt: string;
+    updatedAt: string;
 }
+export type ChatModel = Model<ChatDocument>;
 
-const chatSchema = new mongoose.Schema<ChatProps>({
+const chatSchema = new mongoose.Schema<ChatDocument, ChatModel>({
     isGroupChat: {
         type: Boolean,
         default: false,
@@ -17,7 +20,7 @@ const chatSchema = new mongoose.Schema<ChatProps>({
         type: String,
         minLength: 1,
         trim: true,
-        default: "",
+        default: null,
         required: function () {
             return this.isGroupChat;
         }
@@ -25,7 +28,7 @@ const chatSchema = new mongoose.Schema<ChatProps>({
     members: [
         {
             type: mongoose.Schema.Types.ObjectId,
-            required: "Chat members are required",
+            required: [true, "Chat members are required"],
             ref: "User"
         }
     ],
@@ -45,8 +48,5 @@ const chatSchema = new mongoose.Schema<ChatProps>({
     }
 }, { timestamps: true });
 
-export type ChatDocument = HydratedDocument<ChatProps>;
-export type ChatModel = Model<ChatDocument>;
-
-const Chat = mongoose.model('Chat', chatSchema);
+const Chat = mongoose.model<ChatDocument, ChatModel>('Chat', chatSchema);
 export default Chat;
